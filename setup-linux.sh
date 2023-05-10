@@ -10,15 +10,23 @@ fi
 install() {
   # Build the cs projects
   dotnet publish -c Release > /dev/null
+  
   # Debugging
   # dotnet publish -c Release
+  
   # Create the /opt/crypass directory
   mkdir -p /opt/crypass
+  
   # Copy the published files into /opt/crypass
   cp -r ./crypass/bin/Release/net6.0/publish/* /opt/crypass/
-  # Copy the crypass.sh script into /usr/bin
-  cp ./Crypass /usr/bin/
-  # Make crypass.sh executable
+
+  # Create the Crypass executable into /usr/bin
+  touch /usr/bin/Crypass
+  echo "# This file was automatically created by crypass on installation. Do not edit!" > /usr/bin/Crypass
+  echo "#!/bin/bash" >> /usr/bin/Crypass
+  echo "/opt/crypass/MaturaProject \$@" >> /usr/bin/Crypass
+  
+  # Make Crypass executable
   chmod +x /usr/bin/Crypass
  
   user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
@@ -27,7 +35,7 @@ install() {
     mkdir -p $user_home/.config/crypass
     
     # Create the crypass log directory
-    cp -r ./config/* $user_home/.config/crypass
+    cp -r ./config-linux/* $user_home/.config/crypass
     chown -R $SUDO_USER $user_home/.config/crypass
   fi
   
@@ -55,6 +63,7 @@ uninstall() {
 remove() {
   uninstall
 
+  # Remove the crypass config directory
   user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
   rm -rf $user_home/.config/crypass
   
