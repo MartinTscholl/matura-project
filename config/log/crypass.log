@@ -252,3 +252,13 @@
 2023-05-08 18:10:59,440 [1] INFO  MaturaProject.MaturaProject - Response: yes
 2023-05-08 18:10:59,440 [1] INFO  MaturaProject.MaturaProject - Writing to the standard output stream: ⚙ Executing the specifications...
 2023-05-08 18:10:59,447 [1] FATAL MaturaProject.MaturaProject - Program exited wih: Object reference not set to an instance of an object.
+2023-05-10 19:32:40,025 [1] INFO  MaturaProject.MaturaProject - Detected Linux
+2023-05-10 19:32:40,035 [1] INFO  MaturaProject.MaturaProject - Creating Linux CLI
+2023-05-10 19:32:40,059 [1] INFO  MaturaProject.MaturaProject - Parsing the command-line arguments: 
+2023-05-10 19:32:40,107 [1] FATAL MaturaProject.MaturaProject - The required commands/flags have not been specified or could not have been parsed correctly
+2023-05-10 19:32:40,107 [1] INFO  MaturaProject.MaturaProject - Program exited normally
+2023-05-10 19:45:35,113 [1] INFO  MaturaProject.MaturaProject - Detected Linux
+2023-05-10 19:45:35,123 [1] INFO  MaturaProject.MaturaProject - Creating Linux CLI
+2023-05-10 19:45:35,138 [1] INFO  MaturaProject.MaturaProject - Parsing the command-line arguments: 
+2023-05-10 19:45:35,175 [1] FATAL MaturaProject.MaturaProject - The required commands/flags have not been specified or could not have been parsed correctly
+2023-05-10 19:45:35,176 [1] INFO  MaturaProject.MaturaProject - Program exited normally
