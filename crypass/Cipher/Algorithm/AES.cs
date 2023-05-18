@@ -30,13 +30,7 @@ public class AES : Cipher
             if (Directory.Exists(target))
             {
                 string[] files = Directory.GetFiles(target);
-
-                foreach (string file in files)
-                {
-                    Console.WriteLine(file);
-                    // 3. process file here
-                    EncryptFolder(target, keyPath, keyFilename);
-                }
+                EncryptFolder(target, keyPath, keyFilename);
             }
             else if (File.Exists(target))
             {
@@ -44,9 +38,6 @@ public class AES : Cipher
                 EncryptFile(target, keyPath, keyFilename);
             }
         }
-
-        // 5. write in key file in keyPath (external drive)
-
         return 0;
     }
 
@@ -137,9 +128,9 @@ public class AES : Cipher
      */
     public override int Decrypt(IEnumerable<string> targets, List<(string, string, string)> keyData)
     {
-        // TODO: foreach ((string target, byte[] singleKeyData) in targets.Zip(keyData, (t, k) => (t, k)))
-        // foreach (var target in targets)
-        foreach ((string target, (string algorithmType, string prefix, string key)) in targets.Zip(keyData, (t, k) => (t, k)))
+        foreach ((string algorithmType, string prefix, string key) in keyData)
+        foreach (var target in targets)
+        // foreach ((string target, (string algorithmType, string prefix, string key)) in targets.Zip(keyData, (t, k) => (t, k)))
         {
             // check if target uuid and key uuid match
             string targetContent = File.ReadAllText(target);
@@ -189,7 +180,6 @@ public class AES : Cipher
         byte[] buffer = new byte[1024 * 1024];
 
         string[] keyIvParts = keyData.Item3.Split(new string[] { "|||" }, StringSplitOptions.None);
-        Console.WriteLine(target);
         _aes.Key = Convert.FromBase64String(keyIvParts[0].Trim());
         _aes.IV = Convert.FromBase64String(keyIvParts[1].Trim());
 

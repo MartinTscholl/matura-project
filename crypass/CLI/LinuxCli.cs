@@ -67,11 +67,18 @@ public class LinuxCli : Cli
             if (_encrypt.Targets is null)
                 throw new ErrorException("The [target] was not [specified]");
 
-            foreach (string target in _encrypt.Targets)
+
+            List<string> targetsList = _encrypt.Targets.ToList();
+            for (int i = 0; i < targetsList.Count; i++)
             {
+                string target = targetsList[i];
                 if (!File.Exists(target) && !Directory.Exists(target))
                     throw new ErrorException("The [target] " + target + " was not [found]");
+
+                if (target.EndsWith("/"))
+                    targetsList[i] = target.TrimEnd('/');
             }
+            _encrypt.Targets = targetsList;
         }
 
         else if (_decrypt is not null)
@@ -79,11 +86,17 @@ public class LinuxCli : Cli
             if (_decrypt.Targets is null)
                 throw new ErrorException("The [target] was not [specified]");
 
-            foreach (string target in _decrypt.Targets)
+            List<string> targetsList = _decrypt.Targets.ToList();
+            for (int i = 0; i < targetsList.Count; i++)
             {
+                string target = targetsList[i];
                 if (!File.Exists(target) && !Directory.Exists(target))
                     throw new ErrorException("The [target] " + target + " was not [found]");
+
+                if (target.EndsWith("/"))
+                    targetsList[i] = target.TrimEnd('/');
             }
+            _decrypt.Targets = targetsList;
         }
     }
 }
