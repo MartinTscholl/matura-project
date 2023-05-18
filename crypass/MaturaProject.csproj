@@ -13,4 +13,9 @@
       <PackageReference Include="log4net" Version="2.0.15" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="CipherAlgorithms\AesCipherAlgorithm.cs" />
+      <Compile Remove="CipherManager.cs" />
+    </ItemGroup>
+
 </Project>

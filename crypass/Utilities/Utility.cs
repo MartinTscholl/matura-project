@@ -25,10 +25,15 @@ public abstract class Base
     private protected DecryptOptions? _decrypt = null;
 
     /// <summary>
-    /// Returns the user specified drive directory to use for ciphering.
+    /// Returns the user specified directory containing the key file to use for ciphering.
     /// </summary>
-    /// <returns>A DirectoryInfo object of the specified drive or null if no drive was chosen.</returns>
-    private protected abstract DirectoryInfo GetDrive();
+    /// <returns>A DirectoryInfo object of the specified file.</returns>
+    private protected abstract DirectoryInfo GetKeyDirectory();
+
+    /// <summary>
+    /// Checks if the targets specified by the user exist.
+    /// </summary>
+    private protected abstract void CheckTargets();
 
     /// <summary>
     /// Initiates the program execution.
@@ -45,20 +50,25 @@ public class EncryptOptions
     /// <summary>
     /// A flag that indicates the specified targets for encryption
     /// </summary>
-    [Option('t', "target", Separator = ' ', Required = true, HelpText = "To specify the target(s)")]
-    public IEnumerable<string>? Target { get; set; }
+    [Option('t', "targets", Separator = ' ', Required = true, HelpText = "The target(s)")]
+    public IEnumerable<string>? Targets { get; set; }
 
     /// <summary>
-    /// A flag that indicates the specified drive
+    /// A flag that indicates the specified directory for the key file
     /// </summary>
-    [Option('d', "drive", Required = true, HelpText = "To specify the drive's name")]
-    public string? DriveName { get; set; }
+    [Option('k', "key", Required = true, HelpText = "The absolute path to the directory for the key file")]
+    public string? KeyPath { get; set; }
+
+    /// <summary>
+    /// A flag that indicates the specified name for the key file 
+    /// </summary>
+    [Option('n', "name", Required = true, HelpText = "The name of the key file that will be generated inside the key directory")]
+    public string? Name { get; set; }
 
     /// <summary>
     /// A flag that indicates the specified encryption algorithm
     /// </summary>
-    /// <value></value>
-    [Option('a', "algorithm", HelpText = "The encryption algorithm")]
+    [Option('a', "algorithm", HelpText = "The encryption algorithm. Supported: Aes, TripleDes, Des, Blowfish")]
     public string? Algorithm { get; set; }
 
     /// <summary>
@@ -70,10 +80,10 @@ public class EncryptOptions
         get
         {
             return new List<Example>() {
-            new Example("Encrypts the specified directory dir and the file file using the drive drive",
+            new Example("Encrypts the specified directory dir and the file fil using the directory key-directory",
                 new EncryptOptions {
-                    Target = Enumerable.Empty<string>().Append<string>("dir/").Append<string>("file"),
-                    DriveName = "drive",
+                    Targets = Enumerable.Empty<string>().Append<string>("dir/").Append<string>("fil"),
+                    KeyPath = "key-directory/",
                 }),
             };
         }
@@ -89,14 +99,14 @@ public class DecryptOptions
     /// <summary>
     /// A flag that indicates the specified targets for decryption
     /// </summary>
-    [Option('t', "target", Separator = ' ', Required = true, HelpText = "To specify the target(s)")]
-    public IEnumerable<string>? Target { get; set; }
+    [Option('t', "targets", Separator = ' ', Required = true, HelpText = "To specify the target(s)")]
+    public IEnumerable<string>? Targets { get; set; }
 
     /// <summary>
-    /// A flag that indicates the specified drive
+    /// A flag that indicates the specified directory for the key file
     /// </summary>
-    [Option('d', "drive", Required = true, HelpText = "To specify the drive's name")]
-    public string? DriveName { get; set; }
+    [Option('k', "key", Required = true, HelpText = "The absolute path to the directory for the key file")]
+    public string? KeyPath { get; set; }
 
     /// <summary>
     /// Defines the examples for the help message.
@@ -107,10 +117,10 @@ public class DecryptOptions
         get
         {
             return new List<Example>() {
-            new Example("Decrypts the specified directory dir and the file file using the drive drive",
+            new Example("Decrypts the specified directory dir and the file fil using the directory key-directory",
                 new DecryptOptions {
-                    Target = Enumerable.Empty<string>().Append<string>("dir/").Append<string>("file"),
-                    DriveName = "drive",
+                    Targets = Enumerable.Empty<string>().Append<string>("dir/").Append<string>("fil"),
+                    KeyPath = "key-directory/",
                 }),
             };
         }

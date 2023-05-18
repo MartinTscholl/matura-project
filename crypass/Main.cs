@@ -14,7 +14,7 @@ namespace MaturaProject;
 public static class MaturaProject
 {
     /// <summary>
-    /// The logger used for logging into {CurrentDir}/Local/log/crypass.log.
+    /// The logger used for logging.
     /// </summary>
     /// <returns></returns>
     public static readonly ILog Log = LogManager.GetLogger(typeof(MaturaProject));
@@ -32,8 +32,9 @@ public static class MaturaProject
             //  check if OS is Linux
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                // log4net.Config.XmlConfigurator.Configure(new FileInfo(Directory.GetCurrentDirectory() + "/Local/log/log4net.config"));
-                log4net.Config.XmlConfigurator.Configure(new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/crypass/log/log4net.config"));
+                // TODO change path on release
+                log4net.Config.XmlConfigurator.Configure(new FileInfo(Directory.GetCurrentDirectory() + "/Local/log/log4net.config"));
+                // log4net.Config.XmlConfigurator.Configure(new FileInfo("/etc/crypass/log4net.config"));
                 Log.Info("Detected Linux");
 
                 // TODO check for GUI, Log.Info(...gui...) and create GUI instead of CLI
@@ -44,8 +45,8 @@ public static class MaturaProject
             // check if OS is Windows
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // log4net.Config.XmlConfigurator.Configure(new FileInfo(Directory.GetCurrentDirectory() + "\\Local\\log\\log4net.config"));
-                log4net.Config.XmlConfigurator.Configure(new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/crypass/log/log4net.config"));
+                log4net.Config.XmlConfigurator.Configure(new FileInfo(Directory.GetCurrentDirectory() + "\\Local\\log\\log4net.config"));
+                // TODO change path to %appdata%\\crypass\\log\\log4net.config?
                 Log.Info("Detected Windows");
 
                 // TODO check for GUI, Log.Info(...gui...) and create GUI instead of CLI

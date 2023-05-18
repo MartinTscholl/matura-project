@@ -15,9 +15,10 @@ public class WindowsCli : Cli
 {
     /// <summary>
     /// Creates an IniData instance which represents the user's configuration.
-    /// TODO set path absolute to correct installation location (Appdata?)
+    /// TODO set path to %appdata% on release
     /// </summary>
     private protected IniData _configFile = new FileIniDataParser().ReadFile(Directory.GetCurrentDirectory() + "\\Local\\config.ini");
+    // TODO change path to %appdata%\\crypass\\config.ini?
 
     /// <summary>
     /// Initializes a new instance of the WindowsCli class.
@@ -28,44 +29,63 @@ public class WindowsCli : Cli
 
     }
 
-    private protected override void Greet()
-    {
-        PrintProgramName();
-        Console.WriteLine("Windows detected :)\n\n");
-    }
-
-    private protected override DirectoryInfo GetDrive()
+    private protected override DirectoryInfo GetKeyDirectory()
     {
         // TODO check for windows
-        string driveName = "";
+        string keyPath = "";
 
-        if (_encrypt != null)
+        if (_encrypt is not null)
         {
-            if (_encrypt.DriveName == null)
-                throw new ErrorException("The [drive] was not [specified]");
+            if (_encrypt.KeyPath is null)
+                throw new ErrorException("The directory for the [key] was not [specified]");
 
-            driveName = _encrypt.DriveName;
+            keyPath = _encrypt.KeyPath;
         }
 
-        else if (_decrypt != null)
+        else if (_decrypt is not null)
         {
-            if (_decrypt.DriveName == null)
-                throw new ErrorException("The [drive] was not [specified]");
+            if (_decrypt.KeyPath is null)
+                throw new ErrorException("The directory for the [key] was not [specified]");
 
-            driveName = _decrypt.DriveName;
+            keyPath = _decrypt.KeyPath;
         }
 
-        if (driveName == "")
+        if (keyPath == "")
+            throw new ErrorException("The directory for the [key] was not [specified]");
+
+        if (!Directory.Exists(keyPath))
+            throw new ErrorException("The directory for the [key] was not [found]");
+
+        return new DirectoryInfo(keyPath);
+    }
+
+    private protected override void CheckTargets()
+    {
+        // TODO check for windows
+        IEnumerable<string> targets = new List<string>();
+
+        if (_encrypt is not null)
         {
-            throw new ErrorException("The [drive] was not [specified]");
+            if (_encrypt.Targets is null)
+                throw new ErrorException("The [target] was not [specified]");
+
+            foreach (string target in _encrypt.Targets)
+            {
+                if (!File.Exists(target) && !Directory.Exists(target))
+                    throw new ErrorException("The [target] " + target + " was not [found]");
+            }
         }
 
-        foreach (DriveInfo drive in DriveKey.GetCurrentRemovableDrives())
+        else if (_decrypt is not null)
         {
-            if (drive.Name == driveName)
-                return new DirectoryInfo(drive.ToString());
-        }
+            if (_decrypt.Targets is null)
+                throw new ErrorException("The [target] was not [specified]");
 
-        throw new ErrorException("The [drive] was not [found]");
+            foreach (string target in _decrypt.Targets)
+            {
+                if (!File.Exists(target) && !Directory.Exists(target))
+                    throw new ErrorException("The [target] " + target + " was not [found]");
+            }
+        }
     }
 }

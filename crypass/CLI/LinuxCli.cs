@@ -15,10 +15,10 @@ public class LinuxCli : Cli
 {
     /// <summary>
     /// Creates an IniData instance which represents the user's configuration.
-    /// TODO set path absolute to $HOME/.config/crypass/Local/config.ini        
+    /// TODO change path on release       
     /// </summary>
-    // private protected IniData _configFile = new FileIniDataParser().ReadFile(Directory.GetCurrentDirectory() + "/Local/config.ini");
-    private protected IniData _configFile = new FileIniDataParser().ReadFile(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config/crypass/config.ini");
+    private protected IniData _configFile = new FileIniDataParser().ReadFile(Directory.GetCurrentDirectory() + "/Local/config.ini");
+    // private protected IniData _configFile = new FileIniDataParser().ReadFile("/etc/crypass/config.ini");
 
     /// <summary>
     /// Initializes a new instance of the LinuxCli class.
@@ -29,113 +29,61 @@ public class LinuxCli : Cli
 
     }
 
-    private protected override void Greet()
+    private protected override DirectoryInfo GetKeyDirectory()
     {
-        PrintProgramName();
+        string keyPath = "";
 
-        // TODO create method for automatic coloring 
-        WriteColor("[L]", ConsoleColor.Red);
-        WriteColor("[I]", ConsoleColor.DarkYellow);
-        WriteColor("[N]", ConsoleColor.Yellow);
-        WriteColor("[U]", ConsoleColor.Green);
-        WriteColor("[X]", ConsoleColor.Cyan);
-
-        Console.Write(" ");
-
-        WriteColor("[D]", ConsoleColor.Blue);
-        WriteColor("[E]", ConsoleColor.DarkMagenta);
-        WriteColor("[T]", ConsoleColor.Red);
-        WriteColor("[E]", ConsoleColor.DarkYellow);
-        WriteColor("[C]", ConsoleColor.Yellow);
-        WriteColor("[T]", ConsoleColor.Green);
-        WriteColor("[E]", ConsoleColor.Cyan);
-        WriteColor("[D]", ConsoleColor.Blue);
-        Console.Write(" ");
-
-        WriteColor("[:]", ConsoleColor.DarkMagenta);
-        WriteColor("[D]", ConsoleColor.Red);
-
-        Console.WriteLine("\n");
-    }
-
-    private protected override DirectoryInfo GetDrive()
-    {
-        string driveName = "";
-
-        // null checking
         if (_encrypt is not null)
         {
-            if (_encrypt.DriveName is null)
-                throw new ErrorException("The [drive] was not [specified]");
+            if (_encrypt.KeyPath is null)
+                throw new ErrorException("The directory for the [key] was not [specified]");
 
-            driveName = _encrypt.DriveName;
+            keyPath = _encrypt.KeyPath;
         }
 
         else if (_decrypt is not null)
         {
-            if (_decrypt.DriveName is null)
-                throw new ErrorException("The [drive] was not [specified]");
+            if (_decrypt.KeyPath is null)
+                throw new ErrorException("The directory for they [key] was not [specified]");
 
-            driveName = _decrypt.DriveName;
+            keyPath = _decrypt.KeyPath;
         }
 
-        if (driveName == "")
-            throw new ErrorException("The [drive] was not [specified]");
+        if (keyPath == "")
+            throw new ErrorException("The directory for the [key] was not [specified]");
 
-        // return the user specified removable drive if connected
-        IEnumerable<DriveInfo> removableDrives = DriveKey.GetCurrentRemovableDrives();
-        foreach (var drive in removableDrives)
-            if (driveName.Equals(drive.Name))
-                return new DirectoryInfo(drive.ToString());
+        if (!Directory.Exists(keyPath))
+            throw new ErrorException("The directory for the [key] was not [found]");
 
-        MaturaProject.Log.Info("Drive was not found by search, waiting for new drive(s) to connect...");
+        return new DirectoryInfo(keyPath);
+    }
 
-        // drive was not found => ask the user to unplug the drive and plug it back
-        IEnumerable<DriveInfo> currentDrives = DriveKey.GetCurrentDrives();
-        IEnumerable<DriveInfo> newDrives = currentDrives;
+    private protected override void CheckTargets()
+    {
+        IEnumerable<string> targets = new List<string>();
 
-        WriteColor("\n[⚠] The [drive] has [not] been found on the device!\n" +
-                                   "\t [=>] Maybe it was [not connected correctly]!\n\n",
-                            ConsoleColor.Yellow);
-        WriteColor("[ℹ] Please [plug] your [drive] into the device.\n" +
-                   "\t [=>] If your drive is [plugged in], please [unplug] the drive and [plug] it back into the device.\n\n",
-            ConsoleColor.Cyan);
-        WriteColor("[⚙ Searching] for a [drive]...\n" +
-                   "\t [=>] This could take [a few seconds].", ConsoleColor.Magenta);
-
-        while (true)
+        if (_encrypt is not null)
         {
-            // TODO: when drive is unplugged but its not the correct drive
+            if (_encrypt.Targets is null)
+                throw new ErrorException("The [target] was not [specified]");
 
-            // loops again until something connects
-            while (newDrives.Count() <= currentDrives.Count())
+            foreach (string target in _encrypt.Targets)
             {
-                if (newDrives.Count() < currentDrives.Count())
-                    currentDrives = newDrives;
-
-                Thread.Sleep(200);
-                newDrives = DriveKey.GetCurrentDrives();
+                if (!File.Exists(target) && !Directory.Exists(target))
+                    throw new ErrorException("The [target] " + target + " was not [found]");
             }
+        }
 
-            MaturaProject.Log.Info("New drive(s) connected");
+        else if (_decrypt is not null)
+        {
+            if (_decrypt.Targets is null)
+                throw new ErrorException("The [target] was not [specified]");
 
-            // return the user specified removable drive if connected
-            IEnumerable<DriveInfo> newRemovableDrives = newDrives.Except(currentDrives).Concat(currentDrives.Except(newDrives));
-            foreach (var drive in newRemovableDrives)
+            foreach (string target in _decrypt.Targets)
             {
-                if (drive.Name.Length > driveName.Length
-                    && drive.Name.Substring(drive.Name.Length - driveName.Length, driveName.Length)
-                        .Equals(driveName))
-                {
-                    WriteColor("\n\n[✔] The following drive has been connected: \n\t [" + drive.Name + "]\n",
-                        ConsoleColor.Green);
-
-                    return new DirectoryInfo(drive.ToString());
-                }
+                if (!File.Exists(target) && !Directory.Exists(target))
+                    throw new ErrorException("The [target] " + target + " was not [found]");
             }
-
-            // set both drives equal to check for changes again
-            currentDrives = newDrives;
-        };
+        }
     }
 }

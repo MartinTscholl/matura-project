@@ -1,5 +1,4 @@
 using System.Text;
-
 using IniParser;
 using IniParser.Model;
 
@@ -8,7 +7,7 @@ namespace MaturaProject.Utilities;
 /// <summary>
 /// Manages the getting, reading and writing of/to drives.
 /// </summary>
-public interface DriveKey
+public interface IDriveKey
 {
     /// <summary>
     /// Prints the specified drive names indented to the standard output stream in a green foreground color.
@@ -67,17 +66,33 @@ public interface DriveKey
     /// <summary>
     /// Gets a list of all key data files that contains a triple of the algorithm type, the prefix and the key. 
     /// </summary>
-    /// <param name="drive">The directory of the drive with the key data</param>
+    /// <param name="directory">The directory of with the key data</param>
     /// <returns>A list of all key data</returns>
-    public static List<(string, string, string)> GetKeyData(DirectoryInfo drive)
+    public static List<(string, string, string)> GetKeyData(DirectoryInfo directory)
     {
         List<(string, string, string)> keyData = new List<(string, string, string)>();
 
-        string[] fileEntries = Directory.GetFiles(drive.FullName + "/crypass/key-data");
+        string[] fileEntries = Directory.GetFiles(directory.FullName);
+
         foreach (string fileName in fileEntries)
         {
+            if (!Path.GetExtension(fileName).Equals(".ini", StringComparison.OrdinalIgnoreCase))
+                continue;
+
             IniData configFile = new FileIniDataParser().ReadFile(fileName);
-            keyData.Add((configFile["KeyData"]["AlgorithmType"], configFile["KeyData"]["Prefix"], configFile["KeyData"]["Key"]));
+
+            SectionData keyDataSection = configFile.Sections.GetSectionData("KeyData");
+
+            if (keyDataSection != null &&
+                keyDataSection.Keys.ContainsKey("AlgorithmType") &&
+                keyDataSection.Keys.ContainsKey("Prefix") &&
+                keyDataSection.Keys.ContainsKey("Key"))
+            {
+                string algorithmType = keyDataSection.Keys["AlgorithmType"];
+                string prefix = keyDataSection.Keys["Prefix"];
+                string key = keyDataSection.Keys["Key"];
+                keyData.Add((algorithmType, prefix, key));
+            }
         }
 
         return keyData;

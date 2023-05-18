@@ -6,7 +6,8 @@ using MaturaProject.Utilities;
 // External dependencies
 // CLI
 using CommandLine;
-using MaturaProject.CipherAlgorithms;
+using MaturaProject.Cipher;
+using MaturaProject.Cipher.Algorithm;
 
 namespace MaturaProject.CLI;
 
@@ -41,24 +42,20 @@ public abstract class Cli : Base
             {
                 _encrypt = new EncryptOptions();
 
-                _encrypt.Target = o.Target;
-                _encrypt.DriveName = o.DriveName;
+                _encrypt.Targets = o.Targets;
+                _encrypt.KeyPath = o.KeyPath;
+                _encrypt.Name = o.Name;
                 _encrypt.Algorithm = o.Algorithm;
             }).WithParsed<DecryptOptions>(o =>
             {
                 _decrypt = new DecryptOptions();
 
-                _decrypt.Target = o.Target;
-                _decrypt.DriveName = o.DriveName;
+                _decrypt.Targets = o.Targets;
+                _decrypt.KeyPath = o.KeyPath;
             }).WithNotParsed(HandleParseError);
 
         Init();
     }
-
-    /// <summary>
-    /// Prints a greet message to the standard output steam.
-    /// </summary>
-    private protected abstract void Greet();
 
     /// <summary>
     /// Handles the errors that occur when attempting to parse CLI arguments.
@@ -74,8 +71,6 @@ public abstract class Cli : Base
             if (error is HelpRequestedError)
                 return;
         }
-
-        // Console.WriteLine("Invalid command-line arguments");
     }
 
     public override void Init()
@@ -87,19 +82,18 @@ public abstract class Cli : Base
         if (_parserResult.Errors.Any(e => e is HelpRequestedError))
             return;
 
-        // Greet();
-
-        RunOptions();
+        Run();
     }
 
     /// <summary>
-    /// Runs the specified options.
+    /// Runs the specified command line options.
     /// </summary>
-    private protected void RunOptions()
+    private protected void Run()
     {
-        DirectoryInfo? driveDirectory = GetDrive();
+        DirectoryInfo? keyDirectory = GetKeyDirectory();
+        CheckTargets();
 
-        MaturaProject.Log.Info("The drive '" + driveDirectory.Name + "' was specified (" + driveDirectory.FullName + ")");
+        MaturaProject.Log.Info("The drive '" + keyDirectory.Name + "' was specified (" + keyDirectory.FullName + ")");
 
         if (ConfirmSpecification() != 0)
         {
@@ -107,25 +101,23 @@ public abstract class Cli : Base
             return;
         }
 
-        WriteColor("\n[⚙] Executing the specifications...\n", ConsoleColor.Magenta);
+        WriteColor("\n[⚙] Executing the specifications...", ConsoleColor.Magenta);
 
         CipherManager cipherManager = new CipherManager();
 
-        // encrypt and check if algorithm was specified
-        // TODO pass the drive path to the encrypt method
-        if (_encrypt is not null && _encrypt.Target is not null)
+        if (_encrypt is not null && _encrypt.Targets is not null && _encrypt.Name is not null)
             if (_encrypt.Algorithm is null)
-                cipherManager.Encrypt(_encrypt.Target, Cipher.AlgorithmType.Aes);
+                cipherManager.Encrypt(_encrypt.Targets, keyDirectory.FullName, _encrypt.Name);
             else
-                cipherManager.Encrypt(_encrypt.Target, (Cipher.AlgorithmType)Enum.Parse(typeof(Cipher.AlgorithmType), _encrypt.Algorithm));
+                cipherManager.Encrypt(_encrypt.Targets, keyDirectory.FullName, _encrypt.Name, (AlgorithmType)Enum.Parse(typeof(AlgorithmType), _encrypt.Algorithm));
 
-        // decrypt
-        else if (_decrypt is not null && _decrypt.Target is not null)
+        else if (_decrypt is not null && _decrypt.Targets is not null)
         {
-            // TODO pass the keyData to the decrypt method
-            List<(string, string, string)> keyData = DriveKey.GetKeyData(driveDirectory);
-            cipherManager.Decrypt(_decrypt.Target);
+            List<(string, string, string)> keyData = IDriveKey.GetKeyData(keyDirectory);
+            cipherManager.Decrypt(_decrypt.Targets, keyData);
         }
+
+        WriteColor("\n[✔] [Done]!\n", ConsoleColor.Green);
     }
 
     /// <summary>
@@ -138,22 +130,31 @@ public abstract class Cli : Base
     public int ConfirmSpecification()
     {
         IEnumerable<string>? target = null;
-        string? driveName = "";
+        string? keyPath = "";
+
+        string? name = null;
         string? algorithm = "";
 
         // check if encrypt or decrypt was specified
         if (_encrypt is not null)
         {
-            target = _encrypt.Target ?? throw new ErrorException("The [target] was not [specified]");
-            driveName = _encrypt.DriveName ?? throw new ErrorException("The [drive] was not [specified]");
+            target = _encrypt.Targets ?? throw new ErrorException("The [target] was not [specified]");
+            keyPath = _encrypt.KeyPath ?? throw new ErrorException("The [key] was not [specified]");
 
+            name = _encrypt.Name ?? throw new ErrorException("The [name] was not [specified]");
             algorithm = _encrypt.Algorithm;
+
+            if (algorithm is not null)
+            {
+                try { var unused = (AlgorithmType)Enum.Parse(typeof(AlgorithmType), algorithm); }
+                catch (ArgumentException) { throw new ErrorException("The algorithm [algorithm] is not supported. Try: Aes, TripleDes, Des, Blowfish"); }
+            }
         }
 
         else if (_decrypt is not null)
         {
-            target = _decrypt.Target ?? throw new ErrorException("The [target] was not [specified]");
-            driveName = _decrypt.DriveName ?? throw new ErrorException("The [drive] was not [specified]");
+            target = _decrypt.Targets ?? throw new ErrorException("The [target] was not [specified]");
+            keyPath = _decrypt.KeyPath ?? throw new ErrorException("The [key] was not [specified]");
         }
 
         else throw new ErrorException("The [verb] was not [specified]");
@@ -168,24 +169,20 @@ public abstract class Cli : Base
             WriteColor("\t[=>]\t[" + t + "]", ConsoleColor.Green);
         }
 
-        WriteColor("\n\n[(-)] The drive '[" + driveName + "]' was specified.\n", ConsoleColor.Green);
+        WriteColor("\n\n[(-)] The drive '[" + keyPath + "]' was specified.\n", ConsoleColor.Green);
+
+        WriteColor("\n[(-)] The name [" + name + "] was specified.\n", ConsoleColor.Green);
 
         if (algorithm is not null)
-            WriteColor("\n[(-)] The [" + algorithm + "] was specified.\n", ConsoleColor.Green);
+            WriteColor("\n[(-)] The algorithm [" + algorithm + "] was specified.\n", ConsoleColor.Green);
+
+        else
+            WriteColor("\n[(-)] The standard algorithm [Aes] will be used.\n", ConsoleColor.Green);
+
 
         Console.WriteLine();
 
         return Confirm("Do you want to continue? [y/n] ") ? 0 : -1;
-    }
-
-    /// <summary>
-    /// Prints the name of the program in ascii art to the standard output stream.
-    /// </summary>
-    public static void PrintProgramName()
-    {
-        // TODO ascii art with name of program
-        Console.WriteLine(
-            "\n                    __                           ____                                   __      \n /'\\_/`\\          /\\ \\__                       /\\  _`\\               __               /\\ \\__   \n/\\      \\     __  \\ \\ ,_\\  __  __  _ __    __  \\ \\ \\L\\ \\_ __   ___  /\\_\\     __    ___\\ \\ ,_\\  \n\\ \\ \\__\\ \\  /'__`\\ \\ \\ \\/ /\\ \\/\\ \\/\\`'__\\/'__`\\ \\ \\ ,__/\\`'__\\/ __`\\\\/\\ \\  /'__`\\ /'___\\ \\ \\/  \n \\ \\ \\_/\\ \\/\\ \\L\\.\\_\\ \\ \\_\\ \\ \\_\\ \\ \\ \\//\\ \\L\\.\\_\\ \\ \\/\\ \\ \\//\\ \\L\\ \\\\ \\ \\/\\  __//\\ \\__/\\ \\ \\_ \n  \\ \\_\\\\ \\_\\ \\__/.\\_\\\\ \\__\\\\ \\____/\\ \\_\\\\ \\__/.\\_\\\\ \\_\\ \\ \\_\\\\ \\____/_\\ \\ \\ \\____\\ \\____\\\\ \\__\\\n   \\/_/ \\/_/\\/__/\\/_/ \\/__/ \\/___/  \\/_/ \\/__/\\/_/ \\/_/  \\/_/ \\/___//\\ \\_\\ \\/____/\\/____/ \\/__/\n                                                                    \\ \\____/                   \n                                                                     \\/___/                    \n");
     }
 
     /// <summary>
