@@ -17,8 +17,8 @@ public class LinuxCli : Cli
     /// Creates an IniData instance which represents the user's configuration.
     /// TODO change path on release       
     /// </summary>
-    private protected IniData _configFile = new FileIniDataParser().ReadFile(Directory.GetCurrentDirectory() + "/Local/config.ini");
-    // private protected IniData _configFile = new FileIniDataParser().ReadFile("/etc/crypass/config.ini");
+    private protected IniData _configFile = new FileIniDataParser().ReadFile("/etc/crypass/config.ini");
+    // private protected IniData _configFile = new FileIniDataParser().ReadFile(Directory.GetCurrentDirectory() + "/Local/config.ini");
 
     /// <summary>
     /// Initializes a new instance of the LinuxCli class.

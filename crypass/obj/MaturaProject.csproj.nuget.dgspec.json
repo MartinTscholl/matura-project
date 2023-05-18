@@ -1,26 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "/home/martin/Documents/School/Matura-Project/crypass/MaturaProject.csproj": {}
+    "/home/martin/Documents/School/Matura-Project-Online/matura-project/crypass/MaturaProject.csproj": {}
   },
   "projects": {
-    "/home/martin/Documents/School/Matura-Project/crypass/MaturaProject.csproj": {
+    "/home/martin/Documents/School/Matura-Project-Online/matura-project/crypass/MaturaProject.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/martin/Documents/School/Matura-Project/crypass/MaturaProject.csproj",
+        "projectUniqueName": "/home/martin/Documents/School/Matura-Project-Online/matura-project/crypass/MaturaProject.csproj",
         "projectName": "MaturaProject",
-        "projectPath": "/home/martin/Documents/School/Matura-Project/crypass/MaturaProject.csproj",
-        "packagesPath": "/home/martin/.nuget/packages/",
-        "outputPath": "/home/martin/Documents/School/Matura-Project/crypass/obj/",
+        "projectPath": "/home/martin/Documents/School/Matura-Project-Online/matura-project/crypass/MaturaProject.csproj",
+        "packagesPath": "/root/.nuget/packages/",
+        "outputPath": "/home/martin/Documents/School/Matura-Project-Online/matura-project/crypass/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/martin/.nuget/NuGet/NuGet.Config"
+          "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
-          "/home/martin/.nuget/NuGet/ini-parser-2.5.2": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

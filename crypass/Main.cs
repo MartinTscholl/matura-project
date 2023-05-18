@@ -33,8 +33,8 @@ public static class MaturaProject
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // TODO change path on release
-                log4net.Config.XmlConfigurator.Configure(new FileInfo(Directory.GetCurrentDirectory() + "/Local/log/log4net.config"));
-                // log4net.Config.XmlConfigurator.Configure(new FileInfo("/etc/crypass/log4net.config"));
+                log4net.Config.XmlConfigurator.Configure(new FileInfo("/etc/crypass/log4net.config"));
+                // log4net.Config.XmlConfigurator.Configure(new FileInfo(Directory.GetCurrentDirectory() + "/Local/log/log4net.config"));
                 Log.Info("Detected Linux");
 
                 // TODO check for GUI, Log.Info(...gui...) and create GUI instead of CLI
